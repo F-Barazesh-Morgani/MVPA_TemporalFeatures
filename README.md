@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Using Temporal Features to Improve Accuracy in Multivariate Pattern Analysis (MVPA) of M/EEG Data
 
 This repository contains code to accompany the paper *“Using temporal features to improve accuracy in Multivariate Pattern Analysis (MVPA) of M/EEG data”*.
@@ -88,3 +89,6 @@ This repository provides **code for the three datasets**, implementing **3 basel
 If you use this repository, please cite our paper:
 
 > Fatemeh Barazesh, *Using temporal features to improve accuracy in Multivariate Pattern Analysis (MVPA) of M/EEG data*, 2025.
+=======
+# MVPA_TemporalFeatures
+>>>>>>> 8138899b190f35e460bb415f50912c270268b18b
