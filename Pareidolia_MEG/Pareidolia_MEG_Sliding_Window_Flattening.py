@@ -106,8 +106,9 @@ window_size = 20
 category1, category2, category3 = 1, 2, 3
 
 # Function to process each participant
-def process_participant(participant):
-    saving_folder = rf'/data/z5452142/experiment_2/{participant}'  
+def process_participant(participant, base_dir="data/experiment_2"):
+   
+    saving_folder = os.path.join(base_dir, participant)
 
     # Determine the number of runs
     num_runs = 7 if participant == "P09" else 6

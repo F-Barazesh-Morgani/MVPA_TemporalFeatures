@@ -123,83 +123,96 @@ def compute_ci(data):
     ci = 1.96 * std_error
     return mean, ci
 
-def process_participant(participant):
-    
-    data_path = rf'/data/z5452142/experiment_object/{participant}'
+def process_participant(participant, base_dir="data/experiment_object"):
+    data_path = os.path.join(base_dir, participant)
     file_name = file_map[participant]
 
-    time_bins = np.arange(0, 701,4)
+    time_bins = np.arange(0, 701, 4)
     object_labels = list(range(20))
 
     object_data = {}
     pairwise_accuracies = {}
-    sequence_numbers_per_object = {}  
-    
+    sequence_numbers_per_object = {}
+
     # Windowing parameters
-    window_size = 20  
-    
+    window_size = 20
+
     print(f"{participant} started.")
-    
+
     TrialList, Class_dat = load_class_dat(data_path, file_name)
-    
+
     # Filter and store data for each object
     for label in object_labels:
-        object_filter = (TrialList[:, 1] == label)  
+        object_filter = (TrialList[:, 1] == label)
         indices = np.where(object_filter)[0]
-        
+
         selected_indices = indices[12:24]
         object_data[label] = Class_dat[selected_indices]
-        
-        seq_numbers = TrialList[selected_indices, 3]  
+
+        seq_numbers = TrialList[selected_indices, 3]
         sequence_numbers_per_object[label] = seq_numbers
-        
-        
+
     # Evaluate pairwise combinations
     for i in range(len(object_labels)):
         for j in range(i + 1, len(object_labels)):
             object_a = object_labels[i]
             object_b = object_labels[j]
 
-            # Retrieve corresponding seq numbers
             seq_numbers_object_a = sequence_numbers_per_object[object_a]
             seq_numbers_object_b = sequence_numbers_per_object[object_b]
 
-            acc = evaluate_over_time(object_data[object_a], object_data[object_b], time_bins, seq_numbers_object_a, seq_numbers_object_b)
+            acc = evaluate_over_time(
+                object_data[object_a],
+                object_data[object_b],
+                time_bins,
+                seq_numbers_object_a,
+                seq_numbers_object_b
+            )
             key = f"{object_a}v{object_b}"
             pairwise_accuracies[key] = acc
 
             # Save each pairwise accuracy
-            np.savetxt(os.path.join(data_path, f"{participant}_w20_Sliding_Window_Flattening_{key}.csv"), acc, delimiter=",")
-            
+            np.savetxt(
+                os.path.join(data_path, f"{participant}_w20_Sliding_Window_Flattening_{key}.csv"),
+                acc, delimiter=","
+            )
+
     print(f"{participant} completed.")
-    
-    
+
     # Stack all pairwise accuracies to compute overall mean
     all_accuracies_array = np.stack(list(pairwise_accuracies.values()), axis=0)
     mean_object_accuracy, ci_object = compute_ci(all_accuracies_array)
 
     # Save overall mean accuracy
-    np.savetxt(os.path.join(data_path, f"{participant}_w20_Sliding_Window_Flattening_mean.csv"), mean_object_accuracy, delimiter=",")
-    
+    np.savetxt(
+        os.path.join(data_path, f"{participant}_w20_Sliding_Window_Flattening_mean.csv"),
+        mean_object_accuracy, delimiter=","
+    )
+
     return mean_object_accuracy
-    
+
 
 if __name__ == "__main__":
-    
     multiprocessing.set_start_method("spawn")
 
     Participant_mean_object_accuracy = []
 
     with concurrent.futures.ProcessPoolExecutor() as executor:
-    
         results = list(executor.map(process_participant, participants))
         Participant_mean_object_accuracy.extend(results)
 
     all_participants_mean_object_accuracies = np.stack(Participant_mean_object_accuracy, axis=0)
     overall_mean_object_accuracy, ci = compute_ci(all_participants_mean_object_accuracies)
 
-    np.savetxt("/data/z5452142/experiment_object/Overal_w20_Sliding_Window_Flattening_mean.csv", overall_mean_object_accuracy, delimiter=",")
-    np.savetxt("/data/z5452142/experiment_object/Overal_w20_Sliding_Window_Flattening_ci.csv", ci, delimiter=",")
+    BASE_DIR = "data/experiment_object"
+    np.savetxt(
+        os.path.join(BASE_DIR, "Overall_w20_Sliding_Window_Flattening_mean.csv"),
+        overall_mean_object_accuracy, delimiter=","
+    )
+    np.savetxt(
+        os.path.join(BASE_DIR, "Overall_w20_Sliding_Window_Flattening_ci.csv"),
+        ci, delimiter=","
+    )
 
     # Time information 
     time = np.arange(-100, 601, 4) 

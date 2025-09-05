@@ -128,8 +128,9 @@ def compute_ci(data):
     ci = 1.96 * std_error
     return mean, ci
 
-def process_participant(participant):
-    data_path = rf'/data/z5452142/experiment_hue/{participant}'
+def process_participant(participant, data_dir="data/experiment_hue"):
+    
+    data_path = os.path.join(data_dir, participant)
     file_name = file_map[participant]
 
     time_bins = np.arange(0, 221)
@@ -159,7 +160,8 @@ def process_participant(participant):
                 stimulus_numbers_hue_a = np.arange(1, hue_data[hue_a].shape[0] + 1)
                 stimulus_numbers_hue_b = np.arange(1, hue_data[hue_b].shape[0] + 1)
                    
-                accuracies = evaluate_over_time(hue_data[hue_a], hue_data[hue_b], time_bins, stimulus_numbers_hue_a, stimulus_numbers_hue_b)
+                accuracies = evaluate_over_time(hue_data[hue_a], hue_data[hue_b], time_bins, 
+                                               stimulus_numbers_hue_a, stimulus_numbers_hue_b)
 
                 if acc_key not in mean_accuracies:
                     mean_accuracies[acc_key] = []
@@ -167,65 +169,59 @@ def process_participant(participant):
 
         print(f"{participant} LumOffset {LumOffset} completed.")
 
+    
+    output_dir = os.path.join(data_path, "results")
+    os.makedirs(output_dir, exist_ok=True)
+
     for pair_key, acc_list in mean_accuracies.items():
         acc_array = np.array(acc_list)
         mean_acc = np.mean(acc_array, axis=0)
-        np.savetxt(os.path.join(data_path, f"{participant}_w20_MiniRocket_mean_{pair_key}.csv"), mean_acc, delimiter=",")
+        np.savetxt(os.path.join(output_dir, f"{participant}_w20_MiniRocket_mean_{pair_key}.csv"), mean_acc, delimiter=",")
         mean_accuracies[pair_key] = mean_acc
 
     all_mean_accuracies = np.stack(list(mean_accuracies.values()), axis=0)
     mean_hue_accuracy, ci_hue = compute_ci(all_mean_accuracies)
-    np.savetxt(os.path.join(data_path, f"{participant}_w20_MiniRocket_mean.csv"), mean_hue_accuracy, delimiter=",")
+    np.savetxt(os.path.join(output_dir, f"{participant}_w20_MiniRocket_mean.csv"), mean_hue_accuracy, delimiter=",")
     
     return mean_hue_accuracy
 
 
 if __name__ == "__main__":
-    
     multiprocessing.set_start_method("spawn")
-
     Participant_mean_hue_accuracy = []
 
+    data_dir = "data/experiment_hue"  
+
     with concurrent.futures.ProcessPoolExecutor() as executor:
-        
-        results = list(executor.map(process_participant, participants))
+        results = list(executor.map(lambda p: process_participant(p, data_dir), participants))
         Participant_mean_hue_accuracy.extend(results)
 
     all_participants_mean_hue_accuracies = np.stack(Participant_mean_hue_accuracy, axis=0)
     overall_mean_hue_accuracy, ci = compute_ci(all_participants_mean_hue_accuracies)
 
-    np.savetxt("/data/z5452142/experiment_hue/Overal_w20_MiniRocket_mean.csv", overall_mean_hue_accuracy, delimiter=",")
-    np.savetxt("/data/z5452142/experiment_hue/Overal_w20_MiniRocket_ci.csv", ci, delimiter=",")
-    
-    # Time information 
-    time = np.arange(-100, 1001, 5)  
+    # Save overall results
+    output_dir = os.path.join(data_dir, "results")
+    os.makedirs(output_dir, exist_ok=True)
+    np.savetxt(os.path.join(output_dir, "Overall_w20_MiniRocket_mean.csv"), overall_mean_hue_accuracy, delimiter=",")
+    np.savetxt(os.path.join(output_dir, "Overall_w20_MiniRocket_ci.csv"), ci, delimiter=",")
 
+    # Plot
+    time = np.arange(-100, 1001, 5)
     plt.figure(figsize=(10, 6))
-
     plt.plot(time, overall_mean_hue_accuracy, color='darkcyan', label='Mean Hue Accuracy')
-    plt.fill_between(time, 
-                     overall_mean_hue_accuracy - ci, 
-                     overall_mean_hue_accuracy + ci, 
-                     color='darkcyan', alpha=0.3)
-
-    # Add stimulus and chance lines
+    plt.fill_between(time, overall_mean_hue_accuracy - ci, overall_mean_hue_accuracy + ci, color='darkcyan', alpha=0.3)
     plt.axvline(x=0, color='black', linestyle='--', label='Stimulus Onset')
     plt.axhline(y=0.5, color='gray', linestyle='--', label='Chance Level (0.5)')
-
     plt.xlabel('Time (ms)')
     plt.ylabel('Accuracy')
     plt.title('Average Classifier Accuracy Over Time - MiniRocket (w=20ms)')
     plt.legend(loc='lower right')
-
-    
     plt.xticks(np.arange(-100, 1001, 100))
     plt.yticks(np.arange(0.45, 0.71, 0.05))
-     
     plt.xlim(-100, 1000)
     plt.ylim(0.45, 0.7)
-    
     plt.tight_layout()
-    plt.savefig("Overall_w20_MiniRocket.png")
+    plt.savefig(os.path.join(output_dir, "Overall_w20_MiniRocket.png"))
     plt.show()
 
 

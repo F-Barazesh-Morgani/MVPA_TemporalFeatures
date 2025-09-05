@@ -121,7 +121,10 @@ category1, category2, category3 = 1, 2, 3
 
 # Function to process each participant
 def process_participant(participant):
-    saving_folder = rf'/data/z5452142/experiment_2/{participant}' 
+    
+    saving_folder = os.path.join("data", "experiment_2", participant)
+
+    os.makedirs(saving_folder, exist_ok=True)
 
     # Determine the number of runs
     num_runs = 7 if participant == "P09" else 6
@@ -131,7 +134,6 @@ def process_participant(participant):
     all_accuracies_2v3 = []
 
     for run in range(1, num_runs + 1):
-        
         save_path_1v2 = os.path.join(saving_folder, f'run{run}_cat1v2.pkl')
         save_path_1v3 = os.path.join(saving_folder, f'run{run}_cat1v3.pkl')
         save_path_2v3 = os.path.join(saving_folder, f'run{run}_cat2v3.pkl')
@@ -158,10 +160,13 @@ def process_participant(participant):
     all_accuracies_1v3 = np.array(all_accuracies_1v3)
     all_accuracies_2v3 = np.array(all_accuracies_2v3)
 
-    # Save results as CSV
-    np.savetxt(f"{participant}_w20_Catch22_1v2.csv", all_accuracies_1v2, delimiter=",", header="Accuracy_1v2", comments="")
-    np.savetxt(f"{participant}_w20_Catch22_1v3.csv", all_accuracies_1v3, delimiter=",", header="Accuracy_1v3", comments="")
-    np.savetxt(f"{participant}_w20_Catch22_2v3.csv", all_accuracies_2v3, delimiter=",", header="Accuracy_2v3", comments="")
+    # Save results as CSV inside participant folder
+    np.savetxt(os.path.join(saving_folder, f"{participant}_w20_Catch22_1v2.csv"),
+               all_accuracies_1v2, delimiter=",", header="Accuracy_1v2", comments="")
+    np.savetxt(os.path.join(saving_folder, f"{participant}_w20_Catch22_1v3.csv"),
+               all_accuracies_1v3, delimiter=",", header="Accuracy_1v3", comments="")
+    np.savetxt(os.path.join(saving_folder, f"{participant}_w20_Catch22_2v3.csv"),
+               all_accuracies_2v3, delimiter=",", header="Accuracy_2v3", comments="")
     print(f"{participant} - Files saved successfully.")
 
     # Compute mean accuracy and confidence intervals
@@ -179,9 +184,12 @@ def process_participant(participant):
     confidence_interval_2v3 = 1.96 * std_error_2v3
 
     # Save mean accuracies
-    np.savetxt(f"{participant}_w20_Catch22_mean_1v2.csv", mean_accuracies_1v2, delimiter=",", header="Mean_Accuracy_1v2", comments="")
-    np.savetxt(f"{participant}_w20_Catch22_mean_1v3.csv", mean_accuracies_1v3, delimiter=",", header="Mean_Accuracy_1v3", comments="")
-    np.savetxt(f"{participant}_w20_Catch22_mean_2v3.csv", mean_accuracies_2v3, delimiter=",", header="Mean_Accuracy_2v3", comments="")
+    np.savetxt(os.path.join(saving_folder, f"{participant}_w20_Catch22_mean_1v2.csv"),
+               mean_accuracies_1v2, delimiter=",", header="Mean_Accuracy_1v2", comments="")
+    np.savetxt(os.path.join(saving_folder, f"{participant}_w20_Catch22_mean_1v3.csv"),
+               mean_accuracies_1v3, delimiter=",", header="Mean_Accuracy_1v3", comments="")
+    np.savetxt(os.path.join(saving_folder, f"{participant}_w20_Catch22_mean_2v3.csv"),
+               mean_accuracies_2v3, delimiter=",", header="Mean_Accuracy_2v3", comments="")
     print(f"{participant} - Mean accuracy files saved successfully.")
 
     # Plot accuracy over time
@@ -202,13 +210,10 @@ def process_participant(participant):
     plt.ylabel('Accuracy')
     plt.title(f'{participant} - Classifier Accuracy Over Time')
     plt.legend()
-    # Set custom x-ticks
+    
     plt.xticks(np.arange(-100, 1100, 100))
-
-    # Set custom y-ticks
     plt.yticks(np.arange(0.45, 0.8, 0.05))
     
-    # Ensure identical axis limits
     plt.xlim(-100, 1000)
     plt.ylim(0.45, 0.8)
 

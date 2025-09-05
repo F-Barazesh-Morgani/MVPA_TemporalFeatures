@@ -105,8 +105,9 @@ window_size = 20
 category1, category2, category3 = 1, 2, 3
 
 # Function to process each participant
-def process_participant(participant):
-    saving_folder = rf'/data/z5452142/experiment_2/{participant}'  
+def process_participant(participant, base_dir="data/experiment_2"):
+   
+    saving_folder = os.path.join(base_dir, participant)
 
     # Determine the number of runs
     num_runs = 7 if participant == "P09" else 6
@@ -187,13 +188,10 @@ def process_participant(participant):
     plt.ylabel('Accuracy')
     plt.title(f'{participant} - Classifier Accuracy Over Time')
     plt.legend()
-    # Set custom x-ticks
+    
     plt.xticks(np.arange(-100, 1100, 100))
-
-    # Set custom y-ticks
     plt.yticks(np.arange(0.45, 0.8, 0.05))
     
-    # Ensure identical axis limits
     plt.xlim(-100, 1000)
     plt.ylim(0.45, 0.8)
 

@@ -108,9 +108,9 @@ window_size = 20
 # Loop over runs
 category1, category2, category3 = 1, 2, 3
 
-# Function to process each participant
-def process_participant(participant):
-    saving_folder = rf'/data/z5452142/experiment_2/{participant}' 
+def process_participant(participant, base_folder="data/experiment_2"):
+    
+    saving_folder = os.path.join(base_folder, participant)
 
     all_accuracies_1v2 = []
     all_accuracies_1v3 = []
