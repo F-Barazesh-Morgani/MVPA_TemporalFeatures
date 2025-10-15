@@ -88,5 +88,5 @@ This repository provides **code for the three datasets**, implementing **3 basel
 
 If you use this repository, please cite our paper:
 
-> Fatemeh Barazesh, *Using temporal features to improve accuracy in Multivariate Pattern Analysis (MVPA) of M/EEG data*, 2025.
+> F. Barazesh Morgani et al., Using Temporal Features to Improve Accuracy in Multivariate Pattern Analysis (MVPA) of M/EEG Data, 2025.
 
